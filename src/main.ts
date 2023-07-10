@@ -5,8 +5,11 @@ import { createPinia } from 'pinia'
 
 import App from './App.vue'
 import router from './router'
+import { setIndexDBConfiguration } from "./IndexDB"
 
 const app = createApp(App)
+
+setIndexDBConfiguration();
 
 app.use(createPinia())
 app.use(router)
