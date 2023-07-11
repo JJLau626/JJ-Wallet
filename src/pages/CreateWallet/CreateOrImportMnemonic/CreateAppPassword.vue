@@ -1,10 +1,7 @@
 <template>
   <div>
-    <van-steps class="step-indicator" :active="activedStepIndicator">
-      <van-step>创建密码</van-step>
-      <!-- <van-step>保护钱包安全</van-step> -->
-      <van-step>确认助记词</van-step>
-    </van-steps>
+    <!-- TODO: 这里可以补上 step 组件的类型提示 -->
+    <IntroSteppers :active="0"/>
 
     <div class="text-center text-[20px] font-bold mt-[40px]">创建密码</div>
 
@@ -75,9 +72,9 @@ import bcrypt from "bcryptjs";
 // TODO: 看看怎么解决这个警告
 import { useUserIndexDBStore } from "@/IndexDB";
 import { useRouter } from "vue-router";
+import IntroSteppers from "./components/IntroSteppers.vue";
 
 const router = useRouter();
-const activedStepIndicator = ref(0);
 
 const password = ref("");
 const secondConfirmPassword = ref("");
@@ -148,25 +145,6 @@ const isShowDisabled = computed(() => {
 </script>
 
 <style scoped lang="scss">
-.step-indicator {
-  width: 90%;
-  margin: 0 auto;
-  margin-top: 20px;
-  :deep(.van-steps--horizontal .van-steps__items) {
-    padding-bottom: 600px;
-  }
-
-  :deep(.van-step--horizontal .van-step__circle-container) {
-    top: 60px;
-  }
-
-  :deep(.van-step__line) {
-    top: 60px;
-    // prettier-ignore
-    height: 1PX;
-  }
-}
-
 :deep(.van-checkbox__label) {
   line-height: 1;
 }
