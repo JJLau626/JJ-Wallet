@@ -5,6 +5,7 @@ import CreateOrImportMnemonic from "../pages/CreateWallet/CreateOrImportMnemonic
 import CreateAppPassword from "../pages/CreateWallet/CreateOrImportMnemonic/CreateAppPassword.vue";
 import ConfirmPassword from "@/pages/CreateWallet/CreateOrImportMnemonic/ConfirmPassword.vue";
 import MarkDownMnemonic from "@/pages/CreateWallet/CreateOrImportMnemonic/MarkDownMnemonic.vue";
+import Main from "@/pages/Main/index.vue";
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
@@ -40,7 +41,12 @@ const router = createRouter({
           component: MarkDownMnemonic
         }
       ]
-    }
+    },
+    {
+      path: "/Main",
+      name: "Main",
+      component: Main
+    },
   ]
 });
 
