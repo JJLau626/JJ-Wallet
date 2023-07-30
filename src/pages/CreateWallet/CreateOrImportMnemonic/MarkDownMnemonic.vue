@@ -1,6 +1,7 @@
 <template>
   <div>
-    <IntroSteppers />
+    <IntroSteppers :active="2" />
+
     <div class="pr-[100px] pl-[100px]">
       <div class="text-[20px] font-bold text-center mt-[20px]">
         写下你的助记词
@@ -49,7 +50,7 @@ import { ethers } from "ethers";
 import IntroSteppers from "./components/IntroSteppers.vue";
 import { useUserIndexDBStore } from "@/IndexDB";
 
-const router = useRouter()
+const router = useRouter();
 const userStore = useUserIndexDBStore();
 
 const wallet = ethers.Wallet.createRandom();
@@ -57,15 +58,23 @@ console.log("wallet", wallet);
 
 const mnemonicWords = ref(wallet.mnemonic.phrase.split(/\s/));
 
+export interface IWalletInfo {
+  wallet_address: string;
+  wallet_private_key: string;
+  wallet_public_key: string;
+};
 const isSavingWalletInfo = ref(false);
 async function saveWalletInfo() {
   isSavingWalletInfo.value = true;
-  await userStore.setItem('wallet_address', wallet.address);
-  await userStore.setItem('wallet_private_key', wallet.privateKey);
-  await userStore.setItem('wallet_public_key', wallet.publicKey);
+  const walletInfo: IWalletInfo = {
+    wallet_address: wallet.address,
+    wallet_private_key: wallet.privateKey,
+    wallet_public_key: wallet.publicKey
+  }
+  await userStore.setItem('wallet', [walletInfo]);
   isSavingWalletInfo.value = false;
   router.push({
-    name: 'Main'
+    name: "Main"
   });
 }
 </script>

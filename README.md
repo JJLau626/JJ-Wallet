@@ -18,3 +18,20 @@ https://github.com/antfu/unplugin-vue-components#typescript
 
 相关引用：
 > https://security.stackexchange.com/questions/93395/how-to-do-client-side-hashing-of-password-using-bcrypt
+
+3. 前端项目如何引入合约项目的 ABI ？
+将合约项目的仓库安装在本地
+通过 npm link 引入软链接（pnpm 的引入方式略有不同）
+然后就可以把合约库当成 node_modules 在本地引用了。
+
+> 参考自：https://pnpm.io/zh/cli/link
+
+4. 是否都将 vant 组件的样式都转成 rem ？
+
+5. 关于 PullRefresh 组件与滚动内容冲突的问题。
+
+先了解 PullRefresh 的触发条件
+
+> https://vant-ui.github.io/vant/#/zh-CN/pull-refresh#pullrefresh-de-chu-fa-tiao-jian-shi
+
+建议内容高度的样式赋值到 PullRefresh 组件上即可。
