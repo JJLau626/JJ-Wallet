@@ -23,7 +23,11 @@
     <div
       class="border-gray-300 border-[1px] rounded-[20px] p-[20px] w-[calc(100vw-100px)] m-auto mt-[80px]"
     >
-      <van-row justify="space-between" align="center">
+      <van-row
+        justify="space-between"
+        align="center"
+        @click="isShowAccountList = true"
+      >
         <!-- 钱包别名，从 indexDB 中取 -->
         <span> Account </span>
         <van-icon name="arrow-down" />
@@ -73,9 +77,7 @@
                 没有看到你的代币？
               </span>
 
-              <span class="text-sky-600 text-[14px]">
-                导入代币
-              </span>
+              <span class="text-sky-600 text-[14px]"> 导入代币 </span>
             </van-row>
           </div>
         </van-pull-refresh>
@@ -149,6 +151,67 @@
         </van-row>
       </div>
     </van-popup>
+
+    <!-- 选择钱包、添加/创建 钱包 -->
+    <van-popup
+      v-model:show="isShowAccountList"
+      class="rounded-t-[20px]"
+      position="bottom"
+    >
+      <!-- 账户列表 -->
+      <div v-if="!isShowCreateAccountOptions" class="">
+        <div class="text-center mt-[50px] mb-[20px] text-[18px] font-bold">
+          账户
+        </div>
+
+        <van-row
+          align="center"
+          class="h-[140px] px-[10px]"
+          :class="true && 'bg-[#d6edf7]'"
+          style="flex-wrap: nowrap"
+        >
+          <!-- divider -->
+          <div
+            class="w-[6px] h-[80%] bg-[transparent]"
+            :class="true && '!bg-[#027bb5]'"
+          ></div>
+
+          <div class="ml-[30px] pr-[30px] truncate">
+            <van-row justify="space-between">
+              <!-- 钱包别名 -->
+              <span> Account </span>
+
+              <span class="text-[12px]"> $ 0.00 </span>
+            </van-row>
+
+            <van-row class="!flex-nowrap" justify="space-between">
+              <!-- 钱包地址 -->
+              <span class="w-[30%] truncate text-[12px]">
+                0xf586eDcC01DA194DB45F3F64C64cD2e4f8Ec2217
+              </span>
+
+              <!-- 代币名称 -->
+              <span class="text-[12px]"> 0 MATIC </span>
+            </van-row>
+          </div>
+        </van-row>
+
+        <div class="px-[30px] mt-[50px]">
+          <van-button
+            type="primary"
+            plain
+            hairline
+            round
+            class="w-[100%] !h-[100px]"
+          >
+            添加钱包
+          </van-button>
+        </div>
+      </div>
+
+      <!-- 创建钱包的相关操作：自动创建、通过助记词导入等。。。 -->
+      <div v-if="isShowCreateAccountOptions">123</div>
+    </van-popup>
   </div>
 </template>
 
@@ -167,6 +230,9 @@ function handleTokenInfoPullRefresh() {
     isOnTokenInfoPullRefresh.value = false;
   }, 1000);
 }
+
+const isShowAccountList = ref(false);
+const isShowCreateAccountOptions = ref(false);
 </script>
 
 <style scoped lang="scss">
