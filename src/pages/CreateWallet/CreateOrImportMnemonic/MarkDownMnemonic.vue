@@ -35,7 +35,7 @@
         round
         class="w-[100%] !h-[100px] !text-[16px] !mt-[150px]"
         :loading="isSavingWalletInfo"
-        @click="saveWalletInfo"
+        @click="confirmMnemonic"
       >
         确认
       </van-button>
@@ -48,10 +48,11 @@ import { ref } from "vue";
 import { useRouter } from "vue-router";
 import { ethers } from "ethers";
 import IntroSteppers from "./components/IntroSteppers.vue";
-import { useUserIndexDBStore } from "@/IndexDB";
+import { useUserIndexDBStore, useContractIndexDBStore } from "@/IndexDB";
 
 const router = useRouter();
 const userStore = useUserIndexDBStore();
+const contractStore = useContractIndexDBStore();
 
 const wallet = ethers.Wallet.createRandom();
 console.log("wallet", wallet);
@@ -62,20 +63,56 @@ export interface IWalletInfo {
   wallet_address: string;
   wallet_private_key: string;
   wallet_public_key: string;
-};
-const isSavingWalletInfo = ref(false);
-async function saveWalletInfo() {
+  wallet_alias: string;
+}
+
+function confirmMnemonic() {
   isSavingWalletInfo.value = true;
-  const walletInfo: IWalletInfo = {
-    wallet_address: wallet.address,
-    wallet_private_key: wallet.privateKey,
-    wallet_public_key: wallet.publicKey
-  }
-  await userStore.setItem('wallet', [walletInfo]);
+  saveWalletInfo();
+  saveContractInfo();
   isSavingWalletInfo.value = false;
   router.push({
     name: "Main"
   });
+}
+
+const isSavingWalletInfo = ref(false);
+// TODO：默认信息写在配置文件会比较好。
+const wallet_alias = "Account";
+/**
+ * 完成所有流程后，保存钱包和一些默认信息
+ * 默认信息：钱包别名
+ */
+async function saveWalletInfo() {
+  const walletInfo: IWalletInfo = {
+    wallet_address: wallet.address,
+    wallet_private_key: wallet.privateKey,
+    wallet_public_key: wallet.publicKey,
+    wallet_alias
+  };
+  await userStore.setItem("wallet", [walletInfo]);
+}
+
+/**
+ * 完成所有流程后，保存网络初始化的一些默认信息
+ * 默认信息：网络名称和对应的 URL
+ */
+async function saveNetworkInfo() {
+
+}
+
+interface IContractList {
+  contract_address: string;
+  token_name: string;
+}
+
+/**
+ * 完成所有流程后，保存合约初始化的一些默认信息
+ * 默认信息：代币名称以及对应的合约地址
+ */
+async function saveContractInfo() {
+  const contractList: IContractList[] = [{}];
+  await contractStore.setItem("contract", "contract");
 }
 </script>
 

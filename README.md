@@ -35,3 +35,7 @@ https://github.com/antfu/unplugin-vue-components#typescript
 > https://vant-ui.github.io/vant/#/zh-CN/pull-refresh#pullrefresh-de-chu-fa-tiao-jian-shi
 
 建议内容高度的样式赋值到 PullRefresh 组件上即可。
+
+6. 关于 iPhone X + 的底部栏适配
+
+> safe-area-inset-bottom 相关 https://developer.mozilla.org/en-US/docs/Web/CSS/env

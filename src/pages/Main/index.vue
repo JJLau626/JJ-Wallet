@@ -203,6 +203,7 @@
             hairline
             round
             class="w-[100%] !h-[100px]"
+            @click="isShowCreateAccountOptions = true"
           >
             添加钱包
           </van-button>
@@ -210,7 +211,20 @@
       </div>
 
       <!-- 创建钱包的相关操作：自动创建、通过助记词导入等。。。 -->
-      <div v-if="isShowCreateAccountOptions">123</div>
+      <div v-if="isShowCreateAccountOptions">
+        <van-nav-bar title="添加账户" left-arrow :border="false" @click-left="isShowCreateAccountOptions = false"/>
+
+        <van-row align="center" class="p-[20px]">
+          <van-icon name="plus" />
+          <span class="ml-[20px]"> 添加新账户 </span>
+        </van-row>
+
+        <van-row align="center" class="p-[20px]">
+          <van-icon name="down" />
+          <span class="ml-[20px]"> 导入账户 </span>
+        </van-row>
+
+      </div>
     </van-popup>
   </div>
 </template>
@@ -249,5 +263,9 @@ const isShowCreateAccountOptions = ref(false);
 
 :deep(.van-tab--active) {
   color: #1989fa;
+}
+
+:deep(.van-nav-bar .van-icon) {
+  color: black;
 }
 </style>
