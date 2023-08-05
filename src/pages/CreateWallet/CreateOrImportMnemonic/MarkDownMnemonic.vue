@@ -48,14 +48,16 @@ import { ref } from "vue";
 import { useRouter } from "vue-router";
 import { ethers } from "ethers";
 import IntroSteppers from "./components/IntroSteppers.vue";
-import { useUserIndexDBStore, useContractIndexDBStore } from "@/IndexDB";
+import {
+  useUserIndexDBTable,
+  useNetworkIndeDBTable
+} from "@/IndexDB";
 
 const router = useRouter();
-const userStore = useUserIndexDBStore();
-const contractStore = useContractIndexDBStore();
+const userTable = useUserIndexDBTable();
+const networkTable = useNetworkIndeDBTable();
 
 const wallet = ethers.Wallet.createRandom();
-console.log("wallet", wallet);
 
 const mnemonicWords = ref(wallet.mnemonic.phrase.split(/\s/));
 
@@ -66,10 +68,10 @@ export interface IWalletInfo {
   wallet_alias: string;
 }
 
-function confirmMnemonic() {
+async function confirmMnemonic() {
   isSavingWalletInfo.value = true;
-  saveWalletInfo();
-  saveContractInfo();
+  await saveWalletInfo();
+  await saveNetworkInfo();
   isSavingWalletInfo.value = false;
   router.push({
     name: "Main"
@@ -90,30 +92,41 @@ async function saveWalletInfo() {
     wallet_public_key: wallet.publicKey,
     wallet_alias
   };
-  await userStore.setItem("wallet", [walletInfo]);
+  await userTable.setItem("wallet", [walletInfo]).catch(console.log);
+}
+
+export interface INetworkInfo {
+  name: string;
+  rpc_url: string;
+  chain_id: string;
+  token_info: {
+    name: string;
+    address: string;
+    number_precision: number;
+  }[];
 }
 
 /**
  * 完成所有流程后，保存网络初始化的一些默认信息
- * 默认信息：网络名称和对应的 URL
+ * 默认信息：网络名称和对应的 URL 以及代币相关的信息
  */
 async function saveNetworkInfo() {
-
+  // TODO：默认信息写在配置文件会比较好。
+  const defaultData: INetworkInfo = {
+    name: "Polygon Mumbai Testnet",
+    rpc_url: "https://rpc-mumbai.maticvigil.com/",
+    chain_id: "80001",
+    token_info: [
+      {
+        name: "MATIC",
+        address: "0x2288EbA68bdb93b54b0d94FdC7bbbc5893f00fC0",
+        number_precision: 18
+      }
+    ]
+  };
+  await networkTable.setItem("network", defaultData).catch(console.log);
 }
 
-interface IContractList {
-  contract_address: string;
-  token_name: string;
-}
-
-/**
- * 完成所有流程后，保存合约初始化的一些默认信息
- * 默认信息：代币名称以及对应的合约地址
- */
-async function saveContractInfo() {
-  const contractList: IContractList[] = [{}];
-  await contractStore.setItem("contract", "contract");
-}
 </script>
 
 <style scoped lang="scss"></style>

@@ -35,11 +35,11 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import IntroSteppers from "./components/IntroSteppers.vue";
-import { useUserIndexDBStore } from "@/IndexDB";
+import { useUserIndexDBTable } from "@/IndexDB";
 import bcrypt from "bcryptjs";
 import router from "@/router";
 
-const userStore = useUserIndexDBStore();
+const userTable = useUserIndexDBTable();
 
 const password = ref("");
 const isCheckingPassword = ref(false);
@@ -47,7 +47,7 @@ const isCheckingPassword = ref(false);
 const errorMessage = ref('');
 async function verifyPassword() {
   isCheckingPassword.value = true;
-  const hash = await userStore.getItem<string>("hash").catch((error) => console.log);
+  const hash = await userTable.getItem<string>("hash").catch((error) => console.log);
   const result = bcrypt.compareSync(password.value, hash as string);
   console.log(result);
   

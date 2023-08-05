@@ -12,7 +12,7 @@
           class="pr-[10px] text-[14px] truncate"
           @click="isShowNetworkList = true"
         >
-          Polygon
+          {{ networkName }}
         </span>
 
         <van-icon name="arrow-down" class="!text-[12px]" />
@@ -29,7 +29,7 @@
         @click="isShowAccountList = true"
       >
         <!-- 钱包别名，从 indexDB 中取 -->
-        <span> Account </span>
+        <span> {{ accountAlias }} </span>
         <van-icon name="arrow-down" />
       </van-row>
 
@@ -44,7 +44,7 @@
           <div
             class="text-[12px] bg-sky-300 text-sky-700 px-[10px] py-[2px] rounded-[100px] w-[250px] truncate"
           >
-            <span> 0xf586eDcC01DA194DB45F3F64C64cD2e4f8Ec2217 </span>
+            <span> {{ walletAddress }} </span>
           </div>
         </van-row>
 
@@ -212,7 +212,12 @@
 
       <!-- 创建钱包的相关操作：自动创建、通过助记词导入等。。。 -->
       <div v-if="isShowCreateAccountOptions">
-        <van-nav-bar title="添加账户" left-arrow :border="false" @click-left="isShowCreateAccountOptions = false"/>
+        <van-nav-bar
+          title="添加账户"
+          left-arrow
+          :border="false"
+          @click-left="isShowCreateAccountOptions = false"
+        />
 
         <van-row align="center" class="p-[20px]">
           <van-icon name="plus" />
@@ -223,7 +228,6 @@
           <van-icon name="down" />
           <span class="ml-[20px]"> 导入账户 </span>
         </van-row>
-
       </div>
     </van-popup>
   </div>
@@ -232,6 +236,35 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import JJToken from "jj-wallet-contract/abi/JJToken.json";
+import { useUserIndexDBTable, useNetworkIndeDBTable } from "@/IndexDB";
+import type { IWalletInfo, INetworkInfo } from "../CreateWallet/CreateOrImportMnemonic/MarkDownMnemonic.vue";
+import { onMounted } from "vue";
+import { useWalletStore } from "@/stores/wallet";
+
+const accountAlias = ref("");
+const networkName = ref("");
+const walletAddress = ref("");
+
+const walletStore = useWalletStore();
+onMounted(async () => {
+  const networkDB = useNetworkIndeDBTable();
+  const networkInfo = await networkDB.getItem<INetworkInfo>('network');
+  networkName.value = networkInfo!.name;
+
+  const userDB = useUserIndexDBTable();
+  const walleInfo = await userDB.getItem<IWalletInfo[]>("wallet");
+  console.log(walleInfo);
+  // 目前选中的钱包，如果没有，默认选择列表中的第一个
+  const currentWalletAddress = walletStore.currentSelectedWalletAddress;
+  const targetWallet =
+    walleInfo!.find((wallet) => {
+      return wallet.wallet_address === currentWalletAddress;
+    }) ?? walleInfo![0];
+  accountAlias.value = targetWallet.wallet_alias;
+  walletAddress.value = targetWallet.wallet_address;
+  // 顺便把当前的地址给保存 store 中作下一次打开页面的默认。
+  walletStore.currentSelectedWalletAddress = targetWallet.wallet_address;
+});
 
 const isShowNetworkList = ref(false);
 

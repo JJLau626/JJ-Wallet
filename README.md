@@ -39,3 +39,17 @@ https://github.com/antfu/unplugin-vue-components#typescript
 6. 关于 iPhone X + 的底部栏适配
 
 > safe-area-inset-bottom 相关 https://developer.mozilla.org/en-US/docs/Web/CSS/env
+
+7. setup script 目前没法直接使用 await 调用异步方法。
+老老实实在 onMounted 方法里写
+```
+onMounted(async () => {
+    await xxx();
+})
+```
+
+8. TS 非空断言
+!. 真的好用！
+
+9. 关于 Pinia 该使用 Options API 还是 Composition API ？
+我个人认为该使用 Options API 。因为鲜明的 JSON 结构和 自动重置功能、不需要大量的手动 return 值。虽然使用使用方式会像 Vuex ，但省去 mutations 反而会减少使用上的压力。

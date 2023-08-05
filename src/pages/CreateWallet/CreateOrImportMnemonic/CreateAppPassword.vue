@@ -70,7 +70,7 @@
 import { ref, computed } from "vue";
 import bcrypt from "bcryptjs";
 // TODO: 看看怎么解决这个警告
-import { useUserIndexDBStore } from "@/IndexDB";
+import { useUserIndexDBTable } from "@/IndexDB";
 import { useRouter } from "vue-router";
 import IntroSteppers from "./components/IntroSteppers.vue";
 
@@ -82,7 +82,7 @@ const isShowPassword = ref(false);
 
 const isCreatingPassword = ref(false);
 const isUserUnderstand = ref(false);
-const user = useUserIndexDBStore();
+const user = useUserIndexDBTable();
 async function setupPassword() {
   isCreatingPassword.value = true;
   const salt = bcrypt.genSaltSync(1);
