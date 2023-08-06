@@ -63,16 +63,22 @@
         >
           <div class="px-[20px]">
             <!-- 代币栏 -->
-            <van-row class="mb-[20px]" justify="space-between" align="center">
+            <van-row
+              v-for="(item, index) in computedTokenInfoList"
+              :key="index"
+              class="mb-[20px]"
+              justify="space-between"
+              align="center"
+            >
               <div>
-                <div>MATIC</div>
-                <div class="text-gray-500 text-[14px]">0 MATIC</div>
+                <div>{{ item.name }}</div>
+                <div class="text-gray-500 text-[14px]">0 {{ item.name }}</div>
               </div>
 
               <div>$ 0.00</div>
             </van-row>
 
-            <van-row justify="center">
+            <van-row class="mt-[50px]" justify="center">
               <span class="text-gray-600 text-[14px]">
                 没有看到你的代币？
               </span>
@@ -237,34 +243,20 @@
 import { ref } from "vue";
 import JJToken from "jj-wallet-contract/abi/JJToken.json";
 import { useUserIndexDBTable, useNetworkIndeDBTable } from "@/IndexDB";
-import type { IWalletInfo, INetworkInfo } from "../CreateWallet/CreateOrImportMnemonic/MarkDownMnemonic.vue";
+import type {
+  IWalletInfo,
+  INetworkInfo
+} from "../CreateWallet/CreateOrImportMnemonic/MarkDownMnemonic.vue";
 import { onMounted } from "vue";
 import { useWalletStore } from "@/stores/wallet";
+import { useNetworkStore } from "@/stores/network";
+import { computed } from "vue";
+import { ethers } from "ethers";
+import { nextTick } from "vue";
 
 const accountAlias = ref("");
 const networkName = ref("");
 const walletAddress = ref("");
-
-const walletStore = useWalletStore();
-onMounted(async () => {
-  const networkDB = useNetworkIndeDBTable();
-  const networkInfo = await networkDB.getItem<INetworkInfo>('network');
-  networkName.value = networkInfo!.name;
-
-  const userDB = useUserIndexDBTable();
-  const walleInfo = await userDB.getItem<IWalletInfo[]>("wallet");
-  console.log(walleInfo);
-  // 目前选中的钱包，如果没有，默认选择列表中的第一个
-  const currentWalletAddress = walletStore.currentSelectedWalletAddress;
-  const targetWallet =
-    walleInfo!.find((wallet) => {
-      return wallet.wallet_address === currentWalletAddress;
-    }) ?? walleInfo![0];
-  accountAlias.value = targetWallet.wallet_alias;
-  walletAddress.value = targetWallet.wallet_address;
-  // 顺便把当前的地址给保存 store 中作下一次打开页面的默认。
-  walletStore.currentSelectedWalletAddress = targetWallet.wallet_address;
-});
 
 const isShowNetworkList = ref(false);
 
@@ -280,6 +272,65 @@ function handleTokenInfoPullRefresh() {
 
 const isShowAccountList = ref(false);
 const isShowCreateAccountOptions = ref(false);
+
+const walletStore = useWalletStore();
+const networkStore = useNetworkStore();
+
+// 原先从数据库获取的 token 列表
+const tokenInfoList = ref<INetworkInfo["token_info_list"]>([]);
+// TODO: 这里怎么合并两种类型？然后怎么去用 computed 简化代码？
+const computedTokenInfoList = ref([]);
+let walletPrivateKey = "";
+// 通过 tokenInfoList 从链上、后端获取 token 相关的
+function setComputedTokenInfoList() {
+  tokenInfoList.value.forEach(async (item) => {
+    const provider = new ethers.providers.JsonRpcProvider(
+      networkStore.currentSelectedNetworkRPC
+    );
+    const wallet = new ethers.Wallet(walletPrivateKey);
+    const walletSigner = wallet.connect(provider);
+    const contract = new ethers.Contract(
+      item.address,
+      JSON.stringify(JJToken),
+      walletSigner
+    );
+    const balanceOfToken = await contract
+      .balanceOf(walletStore.currentSelectedWalletAddress)
+      .catch(console.log);
+    computedTokenInfoList.value.push({
+      ...item,
+      balanceOfToken: balanceOfToken.toNumber(),
+      price: 0
+    });
+  });
+}
+onMounted(async () => {
+  const networkDB = useNetworkIndeDBTable();
+  const networkInfoList = await networkDB.getItem<INetworkInfo[]>("network");
+  const targetNetwork =
+    networkInfoList!.find((item) => {
+      return item.rpc_url === networkStore.currentSelectedNetworkRPC;
+    }) ?? networkInfoList![0];
+  networkName.value = targetNetwork.name;
+  networkStore.currentSelectedNetworkRPC = targetNetwork.rpc_url;
+
+  const userDB = useUserIndexDBTable();
+  const walleInfoList = await userDB.getItem<IWalletInfo[]>("wallet");
+  // 目前选中的钱包，如果没有，默认选择列表中的第一个
+  const currentWalletAddress = walletStore.currentSelectedWalletAddress;
+  const targetWallet =
+    walleInfoList!.find((wallet) => {
+      return wallet.wallet_address === currentWalletAddress;
+    }) ?? walleInfoList![0];
+  accountAlias.value = targetWallet.wallet_alias;
+  walletAddress.value = targetWallet.wallet_address;
+  walletPrivateKey = targetWallet.wallet_private_key;
+  // 顺便把当前的地址给保存 store 中作下一次打开页面的默认。
+  walletStore.currentSelectedWalletAddress = targetWallet.wallet_address;
+
+  tokenInfoList.value = targetNetwork.token_info_list;
+  setComputedTokenInfoList();
+});
 </script>
 
 <style scoped lang="scss">

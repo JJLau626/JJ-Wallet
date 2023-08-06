@@ -53,3 +53,5 @@ onMounted(async () => {
 
 9. 关于 Pinia 该使用 Options API 还是 Composition API ？
 我个人认为该使用 Options API 。因为鲜明的 JSON 结构和 自动重置功能、不需要大量的手动 return 值。虽然使用使用方式会像 Vuex ，但省去 mutations 反而会减少使用上的压力。
+
+10. 关于 泛型 设置某个类型的子类型时。请使用 T['KEY'] 这种方式。使用 '.' 访问符是会报错的。

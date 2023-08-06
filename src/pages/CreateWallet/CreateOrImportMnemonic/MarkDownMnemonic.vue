@@ -99,7 +99,7 @@ export interface INetworkInfo {
   name: string;
   rpc_url: string;
   chain_id: string;
-  token_info: {
+  token_info_list: {
     name: string;
     address: string;
     number_precision: number;
@@ -116,7 +116,7 @@ async function saveNetworkInfo() {
     name: "Polygon Mumbai Testnet",
     rpc_url: "https://rpc-mumbai.maticvigil.com/",
     chain_id: "80001",
-    token_info: [
+    token_info_list: [
       {
         name: "MATIC",
         address: "0x2288EbA68bdb93b54b0d94FdC7bbbc5893f00fC0",
@@ -124,7 +124,7 @@ async function saveNetworkInfo() {
       }
     ]
   };
-  await networkTable.setItem("network", defaultData).catch(console.log);
+  await networkTable.setItem("network", [defaultData]).catch(console.log);
 }
 
 </script>
