@@ -113,6 +113,7 @@
           <!-- 区块链网络列表 -->
           <div class="network-list-container">
             <van-row
+              v-for="(item, index) in networkInfoList" :key="index"
               align="center"
               class="h-[100px] px-[10px]"
               :class="true && 'bg-[#d6edf7]'"
@@ -124,22 +125,7 @@
                 :class="true && '!bg-[#027bb5]'"
               ></div>
 
-              <div class="ml-[30px] pr-[30px] truncate">Polygon</div>
-            </van-row>
-
-            <van-row
-              align="center"
-              class="h-[100px] px-[10px]"
-              :class="false && 'bg-[#d6edf7]'"
-              style="flex-wrap: nowrap"
-            >
-              <!-- divider -->
-              <div
-                class="w-[6px] h-[80%] bg-[transparent]"
-                :class="false && '!bg-[#027bb5]'"
-              ></div>
-
-              <div class="ml-[30px] pr-[30px] truncate">Polygon</div>
+              <div class="ml-[30px] pr-[30px] truncate">{{ item.name }}</div>
             </van-row>
           </div>
 
@@ -182,22 +168,21 @@
             :class="true && '!bg-[#027bb5]'"
           ></div>
 
-          <div class="ml-[30px] pr-[30px] truncate">
+          <div
+            v-for="(item, index) in walleInfoList"
+            :key="index"
+            class="ml-[30px] pr-[30px] truncate"
+          >
             <van-row justify="space-between">
               <!-- 钱包别名 -->
-              <span> Account </span>
-
-              <span class="text-[12px]"> $ 0.00 </span>
+              <span> {{ item.wallet_alias }} </span>
             </van-row>
 
             <van-row class="!flex-nowrap" justify="space-between">
               <!-- 钱包地址 -->
-              <span class="w-[30%] truncate text-[12px]">
-                0xf586eDcC01DA194DB45F3F64C64cD2e4f8Ec2217
+              <span class="w-[100%] truncate text-[12px]">
+                {{ item.wallet_address }}
               </span>
-
-              <!-- 代币名称 -->
-              <span class="text-[12px]"> 0 MATIC </span>
             </van-row>
           </div>
         </van-row>
@@ -276,9 +261,10 @@ const isShowCreateAccountOptions = ref(false);
 const walletStore = useWalletStore();
 const networkStore = useNetworkStore();
 
+const walleInfoList = ref<IWalletInfo[] | null>([]);
+const networkInfoList = ref<INetworkInfo[] | null>([]);
 // 原先从数据库获取的 token 列表
 const tokenInfoList = ref<INetworkInfo["token_info_list"]>([]);
-// TODO: 这里怎么合并两种类型？然后怎么去用 computed 简化代码？
 const computedTokenInfoList = ref([]);
 let walletPrivateKey = "";
 // 通过 tokenInfoList 从链上、后端获取 token 相关的
@@ -306,22 +292,22 @@ function setComputedTokenInfoList() {
 }
 onMounted(async () => {
   const networkDB = useNetworkIndeDBTable();
-  const networkInfoList = await networkDB.getItem<INetworkInfo[]>("network");
+  networkInfoList.value = await networkDB.getItem<INetworkInfo[]>("network");
   const targetNetwork =
-    networkInfoList!.find((item) => {
+    networkInfoList.value!.find((item) => {
       return item.rpc_url === networkStore.currentSelectedNetworkRPC;
-    }) ?? networkInfoList![0];
+    }) ?? networkInfoList.value![0];
   networkName.value = targetNetwork.name;
   networkStore.currentSelectedNetworkRPC = targetNetwork.rpc_url;
 
   const userDB = useUserIndexDBTable();
-  const walleInfoList = await userDB.getItem<IWalletInfo[]>("wallet");
+  walleInfoList.value = await userDB.getItem<IWalletInfo[]>("wallet");
   // 目前选中的钱包，如果没有，默认选择列表中的第一个
   const currentWalletAddress = walletStore.currentSelectedWalletAddress;
   const targetWallet =
-    walleInfoList!.find((wallet) => {
+    walleInfoList.value!.find((wallet) => {
       return wallet.wallet_address === currentWalletAddress;
-    }) ?? walleInfoList![0];
+    }) ?? walleInfoList.value![0];
   accountAlias.value = targetWallet.wallet_alias;
   walletAddress.value = targetWallet.wallet_address;
   walletPrivateKey = targetWallet.wallet_private_key;
