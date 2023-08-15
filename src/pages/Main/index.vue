@@ -113,7 +113,8 @@
           <!-- 区块链网络列表 -->
           <div class="network-list-container">
             <van-row
-              v-for="(item, index) in networkInfoList" :key="index"
+              v-for="(item, index) in networkInfoList"
+              :key="index"
               align="center"
               class="h-[100px] px-[10px]"
               :class="true && 'bg-[#d6edf7]'"
@@ -157,22 +158,18 @@
         </div>
 
         <van-row
+          v-for="(item, index) in walleInfoList"
+          :key="index"
           align="center"
           class="h-[140px] px-[10px]"
-          :class="true && 'bg-[#d6edf7]'"
-          style="flex-wrap: nowrap"
+          :class="item.wallet_address === targetWallet?.wallet_address && 'bg-[#d6edf7]'"
         >
-          <!-- divider -->
           <div
             class="w-[6px] h-[80%] bg-[transparent]"
-            :class="true && '!bg-[#027bb5]'"
+            :class="item.wallet_address === targetWallet?.wallet_address && '!bg-[#027bb5]'"
           ></div>
 
-          <div
-            v-for="(item, index) in walleInfoList"
-            :key="index"
-            class="ml-[30px] pr-[30px] truncate"
-          >
+          <div class="ml-[30px] pr-[30px] truncate">
             <van-row justify="space-between">
               <!-- 钱包别名 -->
               <span> {{ item.wallet_alias }} </span>
@@ -210,7 +207,7 @@
           @click-left="isShowCreateAccountOptions = false"
         />
 
-        <van-row align="center" class="p-[20px]">
+        <van-row align="center" class="p-[20px]" @click="createNewAccount">
           <van-icon name="plus" />
           <span class="ml-[20px]"> 添加新账户 </span>
         </van-row>
@@ -225,19 +222,17 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, onMounted, nextTick } from "vue";
 import JJToken from "jj-wallet-contract/abi/JJToken.json";
 import { useUserIndexDBTable, useNetworkIndeDBTable } from "@/IndexDB";
 import type {
   IWalletInfo,
   INetworkInfo
 } from "../CreateWallet/CreateOrImportMnemonic/MarkDownMnemonic.vue";
-import { onMounted } from "vue";
 import { useWalletStore } from "@/stores/wallet";
 import { useNetworkStore } from "@/stores/network";
-import { computed } from "vue";
 import { ethers } from "ethers";
-import { nextTick } from "vue";
+import clone from "clone";
 
 const accountAlias = ref("");
 const networkName = ref("");
@@ -290,8 +285,11 @@ function setComputedTokenInfoList() {
     });
   });
 }
-onMounted(async () => {
-  const networkDB = useNetworkIndeDBTable();
+
+const networkDB = useNetworkIndeDBTable();
+const userDB = useUserIndexDBTable();
+const targetWallet = ref<IWalletInfo>();
+async function handleOnMounted() {
   networkInfoList.value = await networkDB.getItem<INetworkInfo[]>("network");
   const targetNetwork =
     networkInfoList.value!.find((item) => {
@@ -300,23 +298,43 @@ onMounted(async () => {
   networkName.value = targetNetwork.name;
   networkStore.currentSelectedNetworkRPC = targetNetwork.rpc_url;
 
-  const userDB = useUserIndexDBTable();
   walleInfoList.value = await userDB.getItem<IWalletInfo[]>("wallet");
   // 目前选中的钱包，如果没有，默认选择列表中的第一个
   const currentWalletAddress = walletStore.currentSelectedWalletAddress;
-  const targetWallet =
+  targetWallet.value =
     walleInfoList.value!.find((wallet) => {
       return wallet.wallet_address === currentWalletAddress;
     }) ?? walleInfoList.value![0];
-  accountAlias.value = targetWallet.wallet_alias;
-  walletAddress.value = targetWallet.wallet_address;
-  walletPrivateKey = targetWallet.wallet_private_key;
+  console.log(targetWallet.value);
+  
+  accountAlias.value = targetWallet.value.wallet_alias;
+  walletAddress.value = targetWallet.value.wallet_address;
+  walletPrivateKey = targetWallet.value.wallet_private_key;
   // 顺便把当前的地址给保存 store 中作下一次打开页面的默认。
   walletStore.currentSelectedWalletAddress = targetWallet.wallet_address;
 
   tokenInfoList.value = targetNetwork.token_info_list;
   setComputedTokenInfoList();
-});
+}
+onMounted(handleOnMounted);
+
+async function createNewAccount() {
+  const clonedWalletInfoList = clone(walleInfoList.value);
+  const wallet = ethers.Wallet.createRandom();
+  const walletInfo: IWalletInfo = {
+    wallet_address: wallet.address,
+    wallet_private_key: wallet.privateKey,
+    wallet_public_key: wallet.publicKey,
+    wallet_alias: `Account${clonedWalletInfoList?.length}`
+  };
+  clonedWalletInfoList?.push(walletInfo);
+  await userDB.setItem("wallet", clonedWalletInfoList).catch(console.log);
+  walleInfoList.value = clonedWalletInfoList;
+  isShowAccountList.value = false;
+  isShowCreateAccountOptions.value = false;
+  await nextTick();
+  isShowAccountList.value = true;
+}
 </script>
 
 <style scoped lang="scss">
