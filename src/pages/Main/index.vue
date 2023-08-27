@@ -69,6 +69,7 @@
               class="mb-[20px]"
               justify="space-between"
               align="center"
+              @click="goToCoinDetail(item)"
             >
               <div>
                 <div>{{ item.name }}</div>
@@ -233,7 +234,9 @@ import { useWalletStore } from "@/stores/wallet";
 import { useNetworkStore } from "@/stores/network";
 import { ethers } from "ethers";
 import clone from "clone";
+import { useRouter } from "vue-router";
 
+const router = useRouter();
 const accountAlias = ref("");
 const networkName = ref("");
 const walletAddress = ref("");
@@ -311,7 +314,7 @@ async function handleOnMounted() {
   walletAddress.value = targetWallet.value.wallet_address;
   walletPrivateKey = targetWallet.value.wallet_private_key;
   // 顺便把当前的地址给保存 store 中作下一次打开页面的默认。
-  walletStore.currentSelectedWalletAddress = targetWallet.wallet_address;
+  walletStore.currentSelectedWalletAddress = targetWallet.value.wallet_address;
 
   tokenInfoList.value = targetNetwork.token_info_list;
   setComputedTokenInfoList();
@@ -334,6 +337,13 @@ async function createNewAccount() {
   isShowCreateAccountOptions.value = false;
   await nextTick();
   isShowAccountList.value = true;
+}
+
+function goToCoinDetail(coinInfo) {
+  router.push({
+    name: 'CoinDetail',
+    query: coinInfo
+  });
 }
 </script>
 
